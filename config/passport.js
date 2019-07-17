@@ -2,46 +2,41 @@ const LocalStrategy = require('passport-local').Strategy;
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-// User model
-const User = require('../models/User');
+// Import local users
+const users = require('../mocks/users').users;
 
 module.exports = (passport) => {
 
     passport.use(
-        new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
-            // match user to email
-            User.findOne({ email: email})
-            .then( user => {
+        new LocalStrategy({ usernameField: 'email', passReqToCallBack: true }, (email, password, done) => {
+            //console.log(users)
+            // Match user to supplied email
+            let user = users.find( user => user.email === email );
+            // No user found
+            if (typeof user === 'undefined') {
+                // err, user, opts
+                return done(null, false, { message: 'Email is not registered'})
+            }
+            console.log(user.password)
+            console.log('supplied', password)
 
-                if (!user) { 
-                    // err, user, opts
-                    return done( null, false, { message: 'Email is  Not registered'})
-                }
+            // Now match password to the one stored in users array
+            if ( password !== user.password ) {
+                return done(null, false, { message: 'Password incorrect'})
+            }
 
-                // Match pw to the one stored in db
-                bcrypt.compare(password, user.password, ( err, isMatch) => {
-                    if (err) throw err;
-                    if (isMatch) {
-                        return done(null, user)
-                    } else {
-                        return done(null, false, {message: 'Password incorrect :('})
-                    }
-                });
-
-            })
-            .catch(err =>  console.log(error))
+            // Success
+            return done(null, user)
         })
-    );
-
+    )
 
     passport.serializeUser( (user, done) => {
         done(null, user.id);
     });
 
     passport.deserializeUser( (id, done) => {
-          User.findById( id, ( err, user) => {
-              done(err, user)
-          });
+        const user = users.find( user => user.id === id ) 
+        done(null, { id: user.id, first_name: user.first_name} ) 
     });
 
 } 

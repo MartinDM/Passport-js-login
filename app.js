@@ -6,7 +6,8 @@ const session = require("express-session");
 const app = express();
 const path = require('path');
 const passport = require('passport');
-const db = require('./config/keys').MongoURI;
+
+//const db = require('./config/keys').MongoURI;
 
 // EJS
 app.use(expressLayouts);
@@ -40,9 +41,10 @@ app.use( ( req, res, next ) => {
     next();
 }); 
 
+/* 
 mongoose.connect( db, { useNewUrlParser: true })
     .then( ()=> console.log('MongoDB connected...'))
-    .catch( err => console.log(err) );
+    .catch( err => console.log(err) ); */
     
 // Routes
 app.use('/', require('./routes/index'));
